@@ -3,14 +3,14 @@ title: "Cadreon R Test"
 author: "Anna Andrianatou"
 date: "27/04/2018"
 output:
-  html_document:
-    df_print: paged
   pdf_document:
          latex_engine: xelatex
+  html_document:
+    df_print: paged
 ---
 
 Install and loading of dependencies
-```{r}
+```{r, message=FALSE, warning=FALSE}
 list.of.packages <- c("readxl", "tidyverse", "GGally")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -21,10 +21,13 @@ library(GGally)
 
 ```
 
+## Context
+This is a R test given by Cadreon. It explores the sales of a toy brand across two years with respect to a monthly trend, digital and TV advertising investment and seasonal factors such as Christmas.
+
 ## Question 1
 
 The following loads in the data and prepares it for plotting.
-```{r setup, include=FALSE}
+```{r setup, message=FALSE, warning=FALSE}
 salesData = read_excel("../data/toy_sales_data.xlsx", sheet=1)
 attach(salesData)
 
@@ -34,17 +37,15 @@ salesData <- salesData %>%
   mutate(sales = sales/10^6) %>% 
   mutate(tv_spend = tv_spend/10^6) %>% 
   rename(`Digital Investment ($Mil)` = digital_spend) %>%
-  rename(`Total Investment ($Mil)` = sales) %>%
+  rename(`Sales ($Mil)` = sales) %>%
   rename(`TV Investment ($Mil)` = tv_spend)
 ```
 
-## Context
-This is a R test given by Cadreon. It explores the sales of a toy brand across two years with respect to a monthly trend, digital and TV advertising investment and seasonal factors such as Christmas.
 
 ## Question 2
 A plot of sales, TV and digital investment is below. There appears to be a positive linear time trend in sales. There also appears to be some positive correlation between sales and both investment type.
 
-```{r q2, echo=FALSE}
+```{r q2}
 tidySales = gather(salesData,  "Type", "Amount", 2:4)
 
 ggplot(data= tidySales, aes(x=factor(month), y=Amount/10^6, colour=Type, group=Type))+
@@ -58,8 +59,8 @@ ggplot(data= tidySales, aes(x=factor(month), y=Amount/10^6, colour=Type, group=T
 
 ## Question 3
 A correlation matrix between sales, TV investment and digital investment is given below.
-```{r,fig.align='center', echo=FALSE}
-features <- c("Digital Investment ($Mil)", "Total Investment ($Mil)", "TV Investment ($Mil)")
+```{r,fig.align='center'}
+features <- c("Digital Investment ($Mil)", "Sales ($Mil)", "TV Investment ($Mil)")
     
 lowerTriangleFunction <- function(data, mapping, ...){
   p <- ggplot(data = data, mapping = mapping) + 
@@ -68,7 +69,8 @@ lowerTriangleFunction <- function(data, mapping, ...){
   p
 }
 
-currentTriangleFunction <- function(data, mapping, color = I("grey50"), sizeRange = c(3, 5), ...) {
+currentTriangleFunction <- function(data, mapping, color = I("grey50"),
+                                      sizeRange = c(3, 5), ...) {
   
   # get the x and y data to use the other code
   x <- eval(mapping$x, data)
@@ -137,9 +139,8 @@ ggpairs(salesData %>%
 ```
 Sales is positively correlated with both types of investment. TV spending and digital spending do have some positive correlation, however is fairly small and not statistically significant at the 0.05 threshold. This is suggests that their relationship is unlikely to cause a multicolinearity problem. 
 
-##Question 4 a,b
+## Question 4 a,b
 The month variable in R converts to an integer and represents time in seconds (the spacing between each month is different due to the different number of days in various months). The trend variable is an indicator for each month. We are only really interested in the monthly trend and so the "trend" variable is included and "month" omitted. 
-
 
 ```{r q4, echo=FALSE}
 #fitting a linear regression model to the data: use all data points
@@ -148,33 +149,32 @@ salesRegression = lm(sales ~ tv_spend + digital_spend + trend + xmas)
 plot(salesRegression,1:2) #assumptions of linear regression appear to check out (random, normally dist errors)
 summary(salesRegression)
 ```
-The adjusted R squared (adjusted for the number of variables in the model) is 0.8984. Therefore, approximately 90% of the variation in the sales data is explained by the model. \newline \newline
-
-Assume a level of significance of 5%:\newline \newline
+The adjusted R squared (adjusted for the number of variables in the model) is 0.8984. Therefore, approximately 90% of the variation in the sales data is explained by the model. \newline
+Assume a level of significance of $5\%$:\newline
 TV spend regressor has an associated p-value of 2.58e-06 (<0.05) and therefore there is statisitcally significant in the model (coefficient $\neq$ 0). \newline \newline
 Digital spend regressor has an associated p-value of 1.07e-05 and therefore there is statisitcally significant in the model (coefficient $\neq$ 0). \newline \newline
 Trend has an associated p-value of 1.44e-06 and therefore there is statisitcally significant in the model (coefficient $\neq$ 0). There is some growth over time. \newline \newline
-xmas has an associated p-value of 0.00711 and therefore there is statisitcally significant in the model (coefficient $\neq$ 0). X-mas effects sales positively.\newline \newline
-## Question 5
-From this regression, for every dollar in TV_spend, sales increase by $2.026
+xmas has an associated p-value of 0.00711 and therefore there is statisitcally significant in the model (coefficient $\neq$ 0). X-mas effects sales positively.
 
-To find % change, fit a log-linear regression and interpret the coefficient of TV_spend
-```{r q5, echo=FALSE}
+## Question 5
+From this regression, for every dollar in TV_spend, sales increase by $\$2.026$. \newline 
+To find percentage change, fit a log-linear regression and interpret the coefficient of TV_spend
+```{r q5}
 logSalesRegression = lm(log(sales) ~ tv_spend + digital_spend + trend + xmas)
 summary(logSalesRegression)
 ```
-From this log-linear regression, for every dollar in TV_spend, sales increase by 0.00001957%. 
+From this log-linear regression, for every dollar in TV_spend, sales increase by $0.00001957\%$.
+
 ## Question 6
-$ROI = (gains - investment cost)/investment cost$ (\$2.026 for every $1 in investment) 
-```{r q6, echo=FALSE}
+$ROI = (gains - investment cost)/investment cost$ ($\$2.026$ for every $\$1$ in investment) 
+```{r q6}
 ROI = (2.026-1)/1*100   #102.6%
-ROI
 ```
 
-##Question 7
+## Question 7
 Subsitute the new data into the fitted model. The fitted model is:\newline
 $sales = 3.451\times10^6 +2.026TV_{spend} +2.983Digital_{spend} +2.863\times10^5 t +2.935\times10^6 \mathbb{I}(Xmas)$. \newline Plug in the 3 years of planned investment, with time trend $(25, 26, 27)$ and Xmas is $(0, 0, 0)$ since none of the months are December. The predictions are made using predict.lm.
-```{r q7, echo=FALSE}
+```{r q7}
 plannedData = read_excel("../data/toy_sales_data.xlsx", sheet=2)
 plannedData$trend = c(25,26,27)  #continue the trend variable for the following months
 plannedData$xmas = c(0,0,0)      #none of the prediction dates are xmas
