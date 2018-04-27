@@ -3,10 +3,10 @@ title: "Cadreon R Test"
 author: "Anna Andrianatou"
 date: "27/04/2018"
 output:
-  html_document:
-    df_print: paged
   pdf_document:
          latex_engine: xelatex
+  html_document:
+    df_print: paged
 ---
 
 Install and loading of dependencies
@@ -58,7 +58,7 @@ ggplot(data= tidySales, aes(x=factor(month), y=Amount/10^6, colour=Type, group=T
 
 ## Question 3
 A correlation matrix between sales, TV investment and digital investment is given below.
-```{r q3, echo=FALSE}
+```{r,fig.align='center', echo=FALSE}
 features <- c("Digital Sales ($Mil)", "Total Sales ($Mil)", "TV Sales ($Mil)")
     
 lowerTriangleFunction <- function(data, mapping, ...){
