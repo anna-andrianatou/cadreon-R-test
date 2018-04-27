@@ -16,4 +16,4 @@ library(GGally)
 
 ## Analysis
 
-An in-depth analysis in R-markdown format is avaliable at this [GitHub Page](http://htmlpreview.github.com/?https://github.com/anna-andrianatou/cadreon-R-test/blob/master/Cadreon_markdown.html).
+An in-depth analysis in R-markdown format is avaliable at this [HTML Preview](http://htmlpreview.github.com/?https://github.com/anna-andrianatou/cadreon-R-test/blob/master/Cadreon_markdown.html).
