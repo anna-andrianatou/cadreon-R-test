@@ -7,16 +7,25 @@ output:
     df_print: paged
 ---
 
-```{r setup, include=FALSE}
-# knitr::opts_chunk$set(echo = TRUE)
+Install and loading of dependencies
+```{r}
+list.of.packages <- c("readxl", "tidyverse", "GGally")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
 library(readxl)
 library(tidyverse)
 library(GGally)
+```
 
+## Question 1
+
+The following loads in the data and prepares it for plotting.
+```{r setup, include=FALSE}
 salesData = read_excel("toy_sales_data.xlsx", sheet=1)
 attach(salesData)
 
-# Clean up the labels and scale the values
+# Clean up the labels and scale the values for nice plotting
 salesData <- salesData %>% 
   mutate(digital_spend = digital_spend/10^6) %>% 
   mutate(sales = sales/10^6) %>% 
@@ -24,18 +33,17 @@ salesData <- salesData %>%
   rename(`Digital Sales ($Mil)` = digital_spend) %>%
   rename(`Total Sales ($Mil)` = sales) %>%
   rename(`TV Sales ($Mil)` = tv_spend)
-
-tidySales = gather(salesData,  "Type", "Amount", 2:4)
 ```
 
-## The test
-
+## Context
 This is a R test given by Cadreon. It explores the sales of a toy brand across two years. 
 
 ## Question 2
-A plot of sales, TV and digital investment is below. There does not appear to be any time trend in sales, except for a positive linear growth. The behaviour of sales does appear positively correlated with both TV investment and Digital investment. 
+A plot of sales, TV and digital investment is below. There does not appear to be any time trend in sales, except for a positive linear growth. This increase does not appear to coincide with corresponding increases in TV or Digital sales.
 
 ```{r q2, echo=FALSE}
+tidySales = gather(salesData,  "Type", "Amount", 2:4)
+
 ggplot(data= tidySales, aes(x=factor(month), y=Amount/10^6, colour=Type, group=Type))+
   geom_point()+
   geom_line()+
@@ -53,7 +61,7 @@ features <- c("Digital Sales ($Mil)", "Total Sales ($Mil)", "TV Sales ($Mil)")
 lowerTriangleFunction <- function(data, mapping, ...){
   p <- ggplot(data = data, mapping = mapping) + 
     geom_point(alpha = 0.4) + 
-    geom_smooth(method=lm, fill="blue", color="blue", ...)
+    geom_smooth(method=lm, fill="blue", color="blue", se = FALSE, ...)
   p
 }
 
@@ -124,7 +132,7 @@ ggpairs(salesData %>%
         upper = list(continuous = currentTriangleFunction)
         )
 ```
-Sales is positively correlated with both types of investment. TV spending and digital spending do have some positive correlation, however is fairly small and not statistically significant at the 0.05 threshold. This is sufficient to say that their relationship is unlikely to cause a multicolinearity problem. 
+Sales is positively correlated with both types of investment. TV spending and digital spending do have some positive correlation, however is fairly small and not statistically significant at the 0.05 threshold. This is suggests that their relationship is unlikely to cause a multicolinearity problem. 
 
 ##Question 4 a,b
 The month variable in R converts to an integer and represents time in seconds (the spacing between each month is different due to the different number of days in various months). The trend variable is an indicator for each month. We are only really interested in the monthly trend and so the "trend" variable is included and "month" omitted. 
@@ -133,6 +141,7 @@ The month variable in R converts to an integer and represents time in seconds (t
 ```{r q4, echo=FALSE}
 #fitting a linear regression model to the data: use all data points
 salesRegression = lm(sales ~ tv_spend + digital_spend + trend + xmas)
+
 plot(salesRegression) #assumptions of linear regression appear to check out (random, normally dist errors)
 summary(salesRegression)
 ```
