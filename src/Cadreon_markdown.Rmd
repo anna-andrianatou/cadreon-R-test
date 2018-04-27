@@ -3,10 +3,10 @@ title: "Cadreon R Test: Toy sales"
 author: "Anna Andrianatou"
 date: "27/04/2018"
 output:
-  html_document:
-    df_print: paged
   pdf_document:
          latex_engine: xelatex
+  html_document:
+    df_print: paged
 ---
 
 Install and loading of dependencies
