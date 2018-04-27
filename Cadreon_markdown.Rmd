@@ -2,18 +2,29 @@
 title: "Cadreon R Test"
 author: "Anna Andrianatou"
 date: "27/04/2018"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
-library(ggplot2)
-library(tidyr)
+library(tidyverse)
+library(GGally)
+
 salesData = read_excel("toy_sales_data.xlsx", sheet=1)
 attach(salesData)
 
-#Change to tidy-data:
+# Clean up the labels and scale the values
+salesData <- salesData %>% 
+  mutate(digital_spend = digital_spend/10^6) %>% 
+  mutate(sales = sales/10^6) %>% 
+  mutate(tv_spend = tv_spend/10^6) %>% 
+  rename(`Digital Sales ($Mil)` = digital_spend) %>%
+  rename(`Total Sales ($Mil)` = sales) %>%
+  rename(`TV Sales ($Mil)` = tv_spend)
+
 tidySales = gather(salesData,  "Type", "Amount", 2:4)
 ```
 
@@ -25,20 +36,95 @@ This is a R test given by Cadreon. It explores the sales of a toy brand across t
 A plot of sales, TV and digital investment is below. There does not appear to be any time trend in sales, except for a positive linear growth. The behaviour of sales does appear positively correlated with both TV investment and Digital investment. 
 
 ```{r q2, echo=FALSE}
-ggplot(data= tidySales, aes(x=month, y=Amount/10^6, colour=Type))+
+ggplot(data= tidySales, aes(x=factor(month), y=Amount/10^6, colour=Type, group=Type))+
   geom_point()+
   geom_line()+
   ggtitle("Sales, TV investment and Digital investment vs. Time")+
   xlab("Time")+
-  ylab("Amount ($ million) ")
+  ylab("Amount ($ million) ") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 ## Question 3
 A correlation matrix between sales, TV investment and digital investment is given below.
 ```{r q3, echo=FALSE}
-cor(salesData[,2:4])
+features <- c("Digital Sales ($Mil)", "Total Sales ($Mil)", "TV Sales ($Mil)")
+    
+lowerTriangleFunction <- function(data, mapping, ...){
+  p <- ggplot(data = data, mapping = mapping) + 
+    geom_point(alpha = 0.4) + 
+    geom_smooth(method=lm, fill="blue", color="blue", ...)
+  p
+}
+
+currentTriangleFunction <- function(data, mapping, color = I("grey50"), sizeRange = c(3, 5), ...) {
+  
+  # get the x and y data to use the other code
+  x <- eval(mapping$x, data)
+  y <- eval(mapping$y, data)
+  
+  ct <- cor.test(x,y)
+  sig <- symnum(
+    ct$p.value, 
+    corr = FALSE, 
+    na = FALSE,
+    cutpoints = c(0, 0.05, 0.1, 1),
+    symbols = c("p-val < 0.05", ".", "p-val > 0.05")
+  )
+  
+  r <- unname(ct$estimate)
+  rt <- format(r, digits=2)[1]
+  
+  # since we can't print it to get the strsize, just use the max size range
+  cex <- max(sizeRange)
+  
+  # helper function to calculate a useable size
+  percent_of_range <- function(percent, range) {
+    percent * diff(range) + min(range, na.rm = TRUE)
+  }
+  
+  # plot the cor value
+  ggally_text(
+    label = as.character(rt), 
+    mapping = aes(),
+    xP = 0.5, yP = 0.5, 
+    size = I(percent_of_range(cex * abs(r), sizeRange)),
+    color = color,
+    ...
+  ) + 
+    # add the sig stars
+    geom_text(
+      aes_string(
+        x = 0.8,
+        y = 0.8
+      ),
+      label = sig, 
+      size = 3,
+      color = color,
+      ...
+    ) + 
+    # remove all the background stuff and wrap it with a dashed line
+    theme_classic() + 
+    theme(
+      panel.background = element_rect(
+        color = color, 
+        linetype = "longdash"
+      ), 
+      axis.line = element_blank(), 
+      axis.ticks = element_blank(), 
+      axis.text.y = element_blank(), 
+      axis.text.x = element_blank()
+    )
+}
+    
+ggpairs(tmp %>% 
+          select(features),
+        columns = features, 
+        lower = list(continuous = lowerTriangleFunction), 
+        upper = list(continuous = currentTriangleFunction)
+        )
 ```
-Sales is positively correlated with both types of investment. TV spending and digital spending do have some positive correlation, however is fairly small. Unlikely to cause a multicolinearity problem. 
+Sales is positively correlated with both types of investment. TV spending and digital spending do have some positive correlation, however is fairly small and not statistically significant at the 0.05 threshold. This is sufficient to say that their relationship is unlikely to cause a multicolinearity problem. 
 
 ##Question 4 a,b
 The month variable in R converts to an integer and represents time in seconds (the spacing between each month is different due to the different number of days in various months). The trend variable is an indicator for each month. We are only really interested in the monthly trend and so the "trend" variable is included and "month" omitted. 
@@ -73,7 +159,7 @@ ROI = (2.026-1)/1*100   #102.6%
 ```
 
 ##Question 7
-plug in the values to the regression
+We simple need to feed in the values to our model.
 ```{r q7, echo=FALSE}
 plannedData = read_excel("toy_sales_data.xlsx", sheet=2)
 plannedData$trend = c(25,26,27)  #continue the trend variable for the following months
