@@ -3,10 +3,10 @@ title: "Cadreon R Test"
 author: "Anna Andrianatou"
 date: "27/04/2018"
 output:
-  pdf_document:
-         latex_engine: xelatex
   html_document:
     df_print: paged
+  pdf_document:
+         latex_engine: xelatex
 ---
 
 Install and loading of dependencies
@@ -33,16 +33,16 @@ salesData <- salesData %>%
   mutate(digital_spend = digital_spend/10^6) %>% 
   mutate(sales = sales/10^6) %>% 
   mutate(tv_spend = tv_spend/10^6) %>% 
-  rename(`Digital Sales ($Mil)` = digital_spend) %>%
-  rename(`Total Sales ($Mil)` = sales) %>%
-  rename(`TV Sales ($Mil)` = tv_spend)
+  rename(`Digital Investment ($Mil)` = digital_spend) %>%
+  rename(`Total Investment ($Mil)` = sales) %>%
+  rename(`TV Investment ($Mil)` = tv_spend)
 ```
 
 ## Context
-This is a R test given by Cadreon. It explores the sales of a toy brand across two years. 
+This is a R test given by Cadreon. It explores the sales of a toy brand across two years with respect to a monthly trend, digital and TV advertising investment and seasonal factors such as Christmas.
 
 ## Question 2
-A plot of sales, TV and digital investment is below. There does not appear to be any time trend in sales, except for a positive linear growth. This increase does not appear to coincide with corresponding increases in TV or Digital sales.
+A plot of sales, TV and digital investment is below. There appears to be a positive linear time trend in sales. There also appears to be some positive correlation between sales and both investment type.
 
 ```{r q2, echo=FALSE}
 tidySales = gather(salesData,  "Type", "Amount", 2:4)
@@ -59,7 +59,7 @@ ggplot(data= tidySales, aes(x=factor(month), y=Amount/10^6, colour=Type, group=T
 ## Question 3
 A correlation matrix between sales, TV investment and digital investment is given below.
 ```{r,fig.align='center', echo=FALSE}
-features <- c("Digital Sales ($Mil)", "Total Sales ($Mil)", "TV Sales ($Mil)")
+features <- c("Digital Investment ($Mil)", "Total Investment ($Mil)", "TV Investment ($Mil)")
     
 lowerTriangleFunction <- function(data, mapping, ...){
   p <- ggplot(data = data, mapping = mapping) + 
@@ -145,7 +145,7 @@ The month variable in R converts to an integer and represents time in seconds (t
 #fitting a linear regression model to the data: use all data points
 salesRegression = lm(sales ~ tv_spend + digital_spend + trend + xmas)
 
-plot(salesRegression) #assumptions of linear regression appear to check out (random, normally dist errors)
+plot(salesRegression,1:2) #assumptions of linear regression appear to check out (random, normally dist errors)
 summary(salesRegression)
 ```
 The adjusted R squared (adjusted for the number of variables in the model) is 0.8984. Therefore, approximately 90% of the variation in the sales data is explained by the model. \newline \newline
@@ -172,7 +172,8 @@ ROI
 ```
 
 ##Question 7
-We simple need to feed in the values to our model.
+Subsitute the new data into the fitted model. The fitted model is:\newline
+$sales = 3.451\times10^6 +2.026TV_{spend} +2.983Digital_{spend} +2.863\times10^5 t +2.935\times10^6 \mathbb{I}(Xmas)$. \newline Plug in the 3 years of planned investment, with time trend $(25, 26, 27)$ and Xmas is $(0, 0, 0)$ since none of the months are December. The predictions are made using predict.lm.
 ```{r q7, echo=FALSE}
 plannedData = read_excel("../data/toy_sales_data.xlsx", sheet=2)
 plannedData$trend = c(25,26,27)  #continue the trend variable for the following months
