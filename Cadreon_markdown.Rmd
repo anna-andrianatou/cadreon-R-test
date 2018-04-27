@@ -117,7 +117,7 @@ currentTriangleFunction <- function(data, mapping, color = I("grey50"), sizeRang
     )
 }
     
-ggpairs(tmp %>% 
+ggpairs(salesData %>% 
           select(features),
         columns = features, 
         lower = list(continuous = lowerTriangleFunction), 
