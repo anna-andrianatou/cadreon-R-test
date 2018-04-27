@@ -18,11 +18,17 @@ library(tidyverse)
 library(GGally)
 ```
 
+Ensure knitr outputs to correct folder
+```{r "setup", include=FALSE}
+require("knitr")
+opts_knit$set(root.dir = "outputs/")
+```
+
 ## Question 1
 
 The following loads in the data and prepares it for plotting.
 ```{r setup, include=FALSE}
-salesData = read_excel("toy_sales_data.xlsx", sheet=1)
+salesData = read_excel("data/toy_sales_data.xlsx", sheet=1)
 attach(salesData)
 
 # Clean up the labels and scale the values for nice plotting
@@ -170,7 +176,7 @@ ROI = (2.026-1)/1*100   #102.6%
 ##Question 7
 We simple need to feed in the values to our model.
 ```{r q7, echo=FALSE}
-plannedData = read_excel("toy_sales_data.xlsx", sheet=2)
+plannedData = read_excel("data/toy_sales_data.xlsx", sheet=2)
 plannedData$trend = c(25,26,27)  #continue the trend variable for the following months
 plannedData$xmas = c(0,0,0)      #none of the prediction dates are xmas
 predict.lm(salesRegression, plannedData)   #predicted sales
